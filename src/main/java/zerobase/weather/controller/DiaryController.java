@@ -1,9 +1,13 @@
 package zerobase.weather.controller;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import zerobase.weather.demo.Diary;
+import zerobase.weather.exception.InvalidDateException;
 import zerobase.weather.service.DiaryServiceImpl;
 
 import java.time.LocalDate;
@@ -17,6 +21,7 @@ public class DiaryController {
 
     private final DiaryServiceImpl diaryService;
 
+    @ApiOperation(value = "인기 텍스트와 날씨를 이용해서 DB에 저장", notes = "note")
     @PostMapping("/create/diary")
     public void createDiary(
             @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate date,
@@ -26,6 +31,7 @@ public class DiaryController {
         diaryService.createService(date, text);
     }
 
+    @ApiOperation("선텍한 날씨의 모든 일기 데이터를 가져옵니다")
     @GetMapping("/read/diary")
     public List<Diary> readDiary(
             @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate date
@@ -33,10 +39,14 @@ public class DiaryController {
         return diaryService.readDiary(date);
     }
 
+    @ApiOperation("선택한 기간중의 모든 일기 데이터를 가져옵니다.")
     @GetMapping("/read/diaries")
     public List<Diary> readDiaries(
-            @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate endDate
+            @RequestParam @DateTimeFormat(iso = ISO.DATE)
+            @ApiParam(value = "조회할 기간의 첫 날", example = "2024-03-04") LocalDate startDate,
+
+            @RequestParam @DateTimeFormat(iso = ISO.DATE)
+            @ApiParam(value = "조회할 기간의 마지막 날", example = "2024-03-04") LocalDate endDate
     ) {
         return diaryService.readDiaries(startDate, endDate);
     }
@@ -52,7 +62,12 @@ public class DiaryController {
     @DeleteMapping("/delete/diary")
     public void deleteDiary(
             @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate date
-            ){
+    ) {
         diaryService.deleteDiary(date);
     }
+
+    //@ExceptionHandler(InvalidDateException.class)
+    //컨트롤러가 많아지면 각각 exceptionhandler 처리 하기 어렵다.
+    //동일한 기능이 많을 경우에는 매번 넣어주는 것은 비 효율적
+
 }
